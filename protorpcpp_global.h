@@ -1,0 +1,12 @@
+#ifndef PROTORPCPP_GLOBAL_H
+#define PROTORPCPP_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(PROTORPCPP_LIBRARY)
+#  define PROTORPCPPSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define PROTORPCPPSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // PROTORPCPP_GLOBAL_H
