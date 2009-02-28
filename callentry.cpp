@@ -4,15 +4,19 @@ namespace protorpc{
 CallEntry::CallEntry(){}
 CallEntry::CallEntry(google::protobuf::RpcController *ctrl,google::protobuf::Closure *cb,google::protobuf::Message *resp){
     this->ctrl=ctrl;
-    this>-callback=cb;
+    this->callback=cb;
     this->resp=resp;
 }
-CallEntry::CallEntry(CallEntry &ce){
+CallEntry::CallEntry(const CallEntry &ce){
     operator=(ce);
 }
+CallEntry::CallEntry(const CallEntry *ce){
+    operator=(ce);
+}
+
 void CallEntry::operator=(const CallEntry &ce){
     this->ctrl=ce.ctrl;
-    this->cb=ce.cb;
+    this->callback=ce.callback;
     this->resp=ce.resp;
 }
 

@@ -12,7 +12,8 @@ SOURCES += protorpcpp.cpp \
     callentry.cpp \
     streamcallbackinfo.cpp \
     simplerpccontroller.cpp \
-    twowayrpccontroller.cpp
+    twowayrpccontroller.cpp \
+    prototools.cpp
 HEADERS += protorpcpp.h \
     protorpcpp_global.h \
     twowaystream.h \
@@ -20,4 +21,5 @@ HEADERS += protorpcpp.h \
     callentry.h \
     streamcallbackinfo.h \
     simplerpccontroller.h \
-    twowayrpccontroller.h
+    twowayrpccontroller.h \
+    prototools.h

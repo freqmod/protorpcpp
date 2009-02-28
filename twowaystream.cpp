@@ -8,6 +8,7 @@
 #include "streamcallbackinfo.h"
 #include "simplerpccontroller.h"
 #include "twowayrpccontroller.h"
+#include "twowaystream.moc"
 namespace protorpc{
 using namespace google::protobuf;
 TwoWayStream::TwoWayStream(QIODevice *dev,google::protobuf::Service* srv,bool autostart)
@@ -15,6 +16,7 @@ TwoWayStream::TwoWayStream(QIODevice *dev,google::protobuf::Service* srv,bool au
     timeout=10000;
     spawnCallers=false;
     callnum=0;
+    shutdownCallback=NULL;
 }
 void TwoWayStream::callMethod(const MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, Closure * done){
     if(spawnCallers){
@@ -126,12 +128,13 @@ void TwoWayStream::run() {
                                         request = service->GetRequestPrototype(method).New();
                                         request->ParseFromString(inmsg->buffer());
                                         controller = new TwoWayRpcController(this);
-                                        StreamCallbackInfo *sci=new StreamCallbackInfo(this,controller,inmsg->id());
+                                        google::protobuf::Message *rspmsg=service->GetResponsePrototype(method).New();
+                                        StreamCallbackInfo *sci=new StreamCallbackInfo(this,controller,rspmsg,inmsg->id());
                                         google::protobuf::Closure *rspcls=google::protobuf::NewCallback(StreamCallbackInfo::callhack,sci);
                                         //NewCallback(this, &Handler::FooDone, response);
                                         //void (*resp)(StreamCallbackInfo*)=response;
                                         controller->NotifyOnCancel(rspcls);
-                                        service->CallMethod(method, controller, request,service->GetResponsePrototype(method).New(),rspcls);
+                                        service->CallMethod(method, controller, request,rspmsg,rspcls);
                                 }
                         }
                 }else if (inmsg->type()==protorpc::DESCRIPTOR_REQUEST) {
@@ -156,64 +159,69 @@ void TwoWayStream::run() {
                     }
                 }else if (inmsg->type()==protorpc::RESPONSE_FAILED) {
                         if (currentCalls.contains(inmsg->id())) {
-                                msg = currentCalls.get(inmsg->id());//get controller
-                                msg.ctrl->SetFailed(inmsg.getBuffer());
-                                currentCalls.remove(inmsg.id);
+                                msg = currentCalls.value(inmsg->id());//get controller
+                                msg.ctrl->SetFailed(inmsg->buffer());
+                                currentCalls.remove(inmsg->id());
                         }
                 }else if (inmsg->type()==protorpc::RESPONSE_NOT_IMPLEMENTED) {
                         if (currentCalls.contains(inmsg->id())) {
-                                msg = currentCalls.get(inmsg->id());//get controller
+                                msg = currentCalls.value(inmsg->id());//get controller
                                 msg.ctrl->SetFailed("Not implemented by peer");
-                                currentCalls.remove(inmsg.id);
+                                currentCalls.remove(inmsg->id());
                         }
-                }else if (inmsg->type()==protorpc::DESCRIPTOR_RESPONSE&&descriptorRequestController!=null&&gotDescriptorCallback!=null) {
+                }else if (inmsg->type()==protorpc::DESCRIPTOR_RESPONSE/*&&descriptorRequestController!=NULL&&gotDescriptorCallback!=NULL*/) {
                     //NOT IMPLEMENTED/DON'T CARE
                 }else{//empty buffer
                         //in.skip(in.available());
                 }
         }
 	  cleanup();
-}	
-void cleanup(){
+}
+void TwoWayStream::cleanup(){
     connected=false;
     streamlock.lock();
-    initcond.signalAll();//make sure no caller is waiting for an init signal that will never come
+    initcond.wakeAll();;//make sure no caller is waiting for an init signal that will never come
     streamlock.unlock();
-    if(shutdownCallback!=null)
-	    shutdownCallback.run(false);
-    fireChannelBroken();
+    if(shutdownCallback!=NULL)
+            shutdownCallback->Run();
+    emit channelBroken();
 }
 
 /**
   * Private: Called to signal that a response is recieved, may dissappear at any moment
   */
-void TwoWayStream::response(CallEntry *entry){//Integer id, Object param,RpcController ctrl) {
+void TwoWayStream::response(StreamCallbackInfo *info){//Integer id, Object param,RpcController ctrl) {
     QMutexLocker mtxlck(&streamlock);
-    if(service==null){
-        delete entry;
+    if(service==NULL){
+        delete info;
         return;
     }
     uint32_t id=info->id;
-    if (entry->resp!=NULL) {// response
+    if (!info->ctr->Failed()) {// response
         protorpc::Message rspbld = protorpc::Message();
         rspbld.set_type(protorpc::RESPONSE);
         rspbld.set_id(id);
-        rspbld.set_buffer(entry->resp->SerializeAsString());
-        writeMessage(rspbld);
+        rspbld.set_buffer(info->msg->SerializeAsString());
+        writeMessage(&rspbld);
+
     } else  {// canceled
-        if(ctrl.failed()){
+        if(info->ctr->Failed()){
             protorpc::Message rspbld = protorpc::Message();
             rspbld.set_type(protorpc::RESPONSE_CANCEL);
-            rspbld.set_id(id);
-            writeMessage(rspbld);
+            rspbld.set_id(info->id);
+            writeMessage(&rspbld);
         }else{
             protorpc::Message rspbld = protorpc::Message();
             rspbld.set_type(protorpc::RESPONSE_CANCEL);
             rspbld.set_id(id);
-            rspbld.set_buffer(entry->ctrl->ErrorText());
-            writeMessage(rspbld);
+            rspbld.set_buffer(info->ctr->ErrorText());
+            writeMessage(&rspbld);
         }
     }
+    currentCalls.remove(info->id);
+    delete info->msg;
+    delete info->ctr;
+
 }
 
 

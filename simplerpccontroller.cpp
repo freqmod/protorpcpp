@@ -6,10 +6,10 @@ SimpleRpcController::SimpleRpcController(){
     Reset();
 }
 //client side
-std::string SimpleRpcController::ErrorText(){
+std::string SimpleRpcController::ErrorText() const{
     return reason;
 }
-bool SimpleRpcController::Failed(){
+bool SimpleRpcController::Failed() const{
     return hasFailed;
 }
 void SimpleRpcController::startCancel(){
@@ -27,13 +27,15 @@ void SimpleRpcController::Reset(){
     disconnect(this,SIGNAL(methodCanceled(SimpleRpcController*)),0,0);//disconnect all info listeners
 }
 //server side
-void SimpleRpcController::setFailed(std::string reason){
+void SimpleRpcController::SetFailed(const std::string &reason){
     this->hasFailed=true;
     this->reason=reason;
-    emit hasFailed(this,reason);
+    emit methodFailed(this,reason);
 }
-bool SimpleRpcController::IsCanceled(){
+bool SimpleRpcController::IsCanceled() const{
+    return canceled;
 }
-void SimpleRpcController::notifyOnCancel(Closure *cb){
+void SimpleRpcController::NotifyOnCancel(google::protobuf::Closure *cb){
+    cancelListeners.insert(cb);
 }
 }

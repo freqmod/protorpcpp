@@ -12,7 +12,8 @@ class CallEntry : public QObject
 public:
     CallEntry();
     CallEntry(google::protobuf::RpcController *ctrl,google::protobuf::Closure *cb,google::protobuf::Message *resp);
-    CallEntry(CallEntry &ce);
+    CallEntry(const CallEntry &ce);
+    CallEntry(const CallEntry *ce);
     void operator=(const CallEntry &ce);
     google::protobuf::RpcController *ctrl;
     google::protobuf::Closure *callback;

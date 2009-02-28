@@ -2,6 +2,10 @@
 #define PROTOTOOLS_H
 #include <Qt/QtCore>
 #include <Qt/QtNetwork>
+#include <google/protobuf/message.h>
+#include <google/protobuf/service.h>
+#include <google/protobuf/descriptor.h>
+
 QByteArray serializeToByteArray(google::protobuf::Message *msg);
 inline void parseFromByteArray(google::protobuf::Message *msg,QByteArray ary){
   msg->ParseFromArray(ary.constData(),ary.size());

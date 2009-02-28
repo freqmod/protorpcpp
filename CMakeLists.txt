@@ -22,9 +22,9 @@ ELSE (QT4_FOUND)
 ENDIF (QT4_FOUND)
 
 # qclientold
-set(qtproject_SRCS  twowaystream.cpp threadtool.cpp simplerpccontroller.cpp prototools.cpp protorpcpp.cpp Message.pb.cc callentry.cpp streamcallbackinfo.cpp twowayrpccontroller.cpp) 
+set(qtproject_SRCS  twowaystream.cpp threadtool.cpp simplerpccontroller.cpp prototools.cpp protorpcpp.cpp Message.pb.cc callentry.cpp streamcallbackinfo.cpp twowayrpccontroller.cpp twowaystream.h simplerpccontroller.h) 
 set(qtproject_HDRS)
-QT4_AUTOMOC(  )
+QT4_AUTOMOC(  twowaystream.h simplerpccontroller.h)
 #SET(qtproject_UIS slimemain.ui slimeplayermain.ui)
 #QT4_WRAP_UI(qtproject_UIS_H ${qtproject_UIS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${QT_INCLUDE_DIR}  ${PROTOBUF_INCLUDE} )

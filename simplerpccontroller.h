@@ -19,6 +19,7 @@ public:
     void SetFailed(const std::string &reason);
     bool IsCanceled() const;
     void NotifyOnCancel(google::protobuf::Closure *cb);
+    void startCancel();
     //extensions
 signals:
     void methodFailed(SimpleRpcController *ctrl,std::string reason);
