@@ -13,7 +13,7 @@ public:
     CallEntry();
     CallEntry(google::protobuf::RpcController *ctrl,google::protobuf::Closure *cb,google::protobuf::Message *resp);
     CallEntry(CallEntry &ce);
-    void operator=(CallEntry &ce);
+    void operator=(const CallEntry &ce);
     google::protobuf::RpcController *ctrl;
     google::protobuf::Closure *callback;
     google::protobuf::Message *resp;

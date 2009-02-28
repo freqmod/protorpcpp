@@ -3,8 +3,8 @@
 #include <Qt/QtCore>
 #include <Qt/QtNetwork>
 QByteArray serializeToByteArray(google::protobuf::Message *msg);
-inline void parseFromByteArray(google::protobuf::Message *msg,QByteArray *ary){
-  msg->ParseFromArray(ary->constData(),ary->size());
+inline void parseFromByteArray(google::protobuf::Message *msg,QByteArray ary){
+  msg->ParseFromArray(ary.constData(),ary.size());
 }
 QByteArray bytewiseXOR(QByteArray a1,QByteArray a2);
 QByteArray fromStdString(std::string str);

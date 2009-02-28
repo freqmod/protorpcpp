@@ -5,29 +5,29 @@
 #include <QSet>
 #include <google/protobuf/service.h>
 namespace protorpc{
-class SimpleRpcController : public QObject, google::protobuf::RpcController
+class SimpleRpcController : public QObject, public google::protobuf::RpcController
 {
     Q_OBJECT;
 public:
     SimpleRpcController();
     //client side
-    std::string ErrorText();
-    bool Failed();
-    void startCancel();
+    std::string ErrorText() const;
+    bool Failed() const;
+    void StartCancel();
     void Reset();
     //server side
-    void setFailed(std::string reason);
-    bool IsCanceled();
-    void notifyOnCancel(Closure *cb);
+    void SetFailed(const std::string &reason);
+    bool IsCanceled() const;
+    void NotifyOnCancel(google::protobuf::Closure *cb);
     //extensions
 signals:
     void methodFailed(SimpleRpcController *ctrl,std::string reason);
     void methodCanceled(SimpleRpcController *ctrl);
 protected:
-    std::String reason;
-    boolean hasFailed;
-    boolean canceled;
-    QSet<Closure*> cancelListeners;
+    std::string reason;
+    bool hasFailed;
+    bool canceled;
+    QSet<google::protobuf::Closure*> cancelListeners;
 };
 }
 //#include "simplerpccontroller.moc"

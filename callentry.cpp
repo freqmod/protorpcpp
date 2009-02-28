@@ -10,9 +10,10 @@ CallEntry::CallEntry(google::protobuf::RpcController *ctrl,google::protobuf::Clo
 CallEntry::CallEntry(CallEntry &ce){
     operator=(ce);
 }
-void CallEntry::operator=(CallEntry &ce){
+void CallEntry::operator=(const CallEntry &ce){
     this->ctrl=ce.ctrl;
     this->cb=ce.cb;
     this->resp=ce.resp;
 }
+
 }

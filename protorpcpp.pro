@@ -1,28 +1,23 @@
 # -------------------------------------------------
-# Project created by QtCreator 2009-01-16T18:49:17
+# Project created by QtCreator 2009-01-15T12:27:13
 # -------------------------------------------------
 QT += network
 QT -= gui
-TARGET = Protorpcpp
+TARGET = protorpcpp
 TEMPLATE = lib
 DEFINES += PROTORPCPP_LIBRARY
-SOURCES += twowaystream.cpp \
+SOURCES += protorpcpp.cpp \
+    twowaystream.cpp \
     threadtool.cpp \
-    simplerpccontroller.cpp \
-    prototools.cpp \
-    protorpcpp.cpp \
-    Message.pb.cc \
     callentry.cpp \
     streamcallbackinfo.cpp \
+    simplerpccontroller.cpp \
     twowayrpccontroller.cpp
-HEADERS += Protorpcpp_global.h \
+HEADERS += protorpcpp.h \
+    protorpcpp_global.h \
     twowaystream.h \
     threadtool.h \
-    simplerpccontroller.h \
-    prototools.h \
-    protorpcpp_global.h \
-    protorpcpp.h \
-    Message.pb.h \
     callentry.h \
     streamcallbackinfo.h \
+    simplerpccontroller.h \
     twowayrpccontroller.h
