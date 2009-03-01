@@ -10,6 +10,6 @@ void TwoWayRpcController::setSessionId(void *sid){
 TwoWayStream *TwoWayRpcController::getTwoWayStream(){
     return strm;
 }
-RpcChannel *TwoWayRpcController::getRpcChannel(){
+google::protobuf::RpcChannel *TwoWayRpcController::getRpcChannel(){
 }
 }

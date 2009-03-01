@@ -26,8 +26,10 @@ private:
     QHash<uint32_t,CallEntry> currentCalls;
 public:
     TwoWayStream(QIODevice *dev,google::protobuf::Service* srv,bool autostart);
+    ~TwoWayStream();
     void callMethod(const google::protobuf::MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, google::protobuf::Closure * done);
     void response(StreamCallbackInfo *entry);
+    void start();
 protected:
     void writeMessage(google::protobuf::Message* m);
     void callMethodThreaded(const google::protobuf::MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, google::protobuf::Closure * done);

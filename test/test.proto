@@ -1,0 +1,18 @@
+
+package prttst;
+
+message Testarg {
+  optional int32 intt=1;
+  optional string printer=2;  
+};
+message Testresp {
+  optional string responsecode=1;
+}
+message Void{
+}
+
+service Exprintserver {
+  rpc resp (Void) returns (Testresp);
+  rpc arg (Testarg) returns (Void);
+  rpc argresp (Testarg) returns (Testresp);  
+};

@@ -3,7 +3,10 @@
 
 #include <QObject>
 #include <QSet>
+#include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
+#include <google/protobuf/descriptor.h>
+
 namespace protorpc{
 class SimpleRpcController : public QObject, public google::protobuf::RpcController
 {

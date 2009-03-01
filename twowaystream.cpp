@@ -17,7 +17,22 @@ TwoWayStream::TwoWayStream(QIODevice *dev,google::protobuf::Service* srv,bool au
     spawnCallers=false;
     callnum=0;
     shutdownCallback=NULL;
+    this->dev=dev;
+    this->service=srv;
+    connected=false;
+    if(autostart)
+        start();
 }
+TwoWayStream::~TwoWayStream(){
+        delete dev;
+}
+void TwoWayStream::start(){
+        if(!connected){
+                connected=true;
+                ((QThread*) this)->start();
+        }
+}
+
 void TwoWayStream::callMethod(const MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, Closure * done){
     if(spawnCallers){
             //Class<?> paramTypes[]={MethodDescriptor.class,RpcController.class,google::protobuf::Message.class,google::protobuf::Message.class,RpcCallback.class};
@@ -102,7 +117,7 @@ void TwoWayStream::run() {
         while (connected) {
                 inmsg=(protorpc::Message*)fillMessage(protorpc::Message().New(),false);
                 if(inmsg==NULL||inmsg->type()==protorpc::DISCONNECT){//disconnected by stream
-                        connected=false;
+                    connected=false;
                         break;
                 }
                 if (inmsg->type()==protorpc::REQUEST&&service!=NULL) {

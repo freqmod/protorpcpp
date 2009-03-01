@@ -12,7 +12,7 @@ std::string SimpleRpcController::ErrorText() const{
 bool SimpleRpcController::Failed() const{
     return hasFailed;
 }
-void SimpleRpcController::startCancel(){
+void SimpleRpcController::StartCancel(){
     canceled=true;
     foreach(google::protobuf::Closure* cb,cancelListeners)
         cb->Run();
