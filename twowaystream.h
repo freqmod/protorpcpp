@@ -13,7 +13,8 @@ class TwoWayStream : public QThread
 {
     Q_OBJECT
 protected:
-    QIODevice *dev;
+    QIODevice *idev;
+    QIODevice *odev;
     QMutex streamlock;
     bool connected;
     QWaitCondition initcond;
@@ -25,11 +26,15 @@ private:
     bool spawnCallers;
     QHash<uint32_t,CallEntry> currentCalls;
 public:
-    TwoWayStream(QIODevice *dev,google::protobuf::Service* srv,bool autostart);
+    TwoWayStream(QIODevice *dev,google::protobuf::Service* srv,bool autostart=false,google::protobuf::Closure *shutdownClosure=NULL);
     ~TwoWayStream();
     void callMethod(const google::protobuf::MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, google::protobuf::Closure * done);
     void response(StreamCallbackInfo *entry);
     void start();
+    void setInputDevice(QIODevice *idev);
+    /*Not owned by stream, must be deleted if set !=idev*/
+    void setOutputDevice(QIODevice *odev);
+    void shutdown(bool closeStreams);
 protected:
     void writeMessage(google::protobuf::Message* m);
     void callMethodThreaded(const google::protobuf::MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, google::protobuf::Closure * done);

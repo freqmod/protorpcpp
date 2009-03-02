@@ -14,7 +14,8 @@ SOURCES += protorpcpp.cpp \
     simplerpccontroller.cpp \
     twowayrpccontroller.cpp \
     prototools.cpp \
-    testserversideservice.cpp
+    testserversideservice.cpp \
+    socketserver.cpp
 HEADERS += protorpcpp.h \
     protorpcpp_global.h \
     twowaystream.h \
@@ -24,4 +25,5 @@ HEADERS += protorpcpp.h \
     simplerpccontroller.h \
     twowayrpccontroller.h \
     prototools.h \
-    testserversideservice.h
+    testserversideservice.h \
+    socketserver.h

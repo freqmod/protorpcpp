@@ -23,9 +23,13 @@ void TestServerSideService::argresp(::google::protobuf::RpcController* controlle
 
 }
 int main(int argc,const char** argv){
-    QFile *testfifo= new QFile("test.fifo");
-    testfifo->open(QFile::ReadWrite);
-    protorpc::TwoWayStream *srv=new protorpc::TwoWayStream(testfifo,new TestServerSideService(),true);
+    QFile *testfifo= new QFile("test.in.fifo");
+    testfifo->open(QFile::ReadOnly);
+    QFile *testofifo= new QFile("test.out.fifo");
+    testofifo->open(QFile::WriteOnly);
+    protorpc::TwoWayStream *srv=new protorpc::TwoWayStream(testfifo,new TestServerSideService(),false);
+    srv->setOutputDevice(testofifo);
+    srv->start();
     srv->wait();
     return 0;
 }
