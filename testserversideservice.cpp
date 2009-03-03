@@ -1,5 +1,6 @@
 #include "testserversideservice.h"
 #include "twowaystream.h"
+#include "socketserver.h"
 #include <QTcpServer>
 #include <QTcpSocket>
 TestServerSideService::TestServerSideService(){
@@ -23,13 +24,12 @@ void TestServerSideService::argresp(::google::protobuf::RpcController* controlle
 
 }
 int main(int argc,const char** argv){
-    QFile *testfifo= new QFile("test.in.fifo");
-    testfifo->open(QFile::ReadOnly);
-    QFile *testofifo= new QFile("test.out.fifo");
-    testofifo->open(QFile::WriteOnly);
-    protorpc::TwoWayStream *srv=new protorpc::TwoWayStream(testfifo,new TestServerSideService(),false);
-    srv->setOutputDevice(testofifo);
-    srv->start();
-    srv->wait();
+    //protorpc::TwoWayStream *srv=new protorpc::TwoWayStream(testfifo,new TestServerSideService(),false);
+    //srv->setOutputDevice(testofifo);
+    //srv->start();
+    //srv->wait();
+    protorpc::SocketServer *socsrv= new protorpc::SocketServer(new TestServerSideService(),QHostAddress(QString("0.0.0.0")),1238);
+    socsrv->start();
+    socsrv->wait();
     return 0;
 }

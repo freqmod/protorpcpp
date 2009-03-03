@@ -71,10 +71,10 @@ void TwoWayStream::callMethodThreaded(const MethodDescriptor * method, google::p
 void TwoWayStream::writeMessage(google::protobuf::Message* m){
   char sizebuf[4];
   uint32_t bs=m->ByteSize();
-  sizebuf[0]=bs&0x000000FF;
-  sizebuf[1]=bs&0x0000FF00;
-  sizebuf[2]=bs&0x00FF0000;
-  sizebuf[3]=bs&0xFF000000;
+  sizebuf[0]=bs&0xFF000000;
+  sizebuf[1]=bs&0x00FF0000;
+  sizebuf[2]=bs&0x0000FF00;
+  sizebuf[3]=bs&0x000000FF;
   if(odev->write(sizebuf,4)<0)
       throw -1;
   if(odev->write(serializeToByteArray(m))<0)
@@ -91,15 +91,20 @@ void TwoWayStream::requestServiceDescriptor(google::protobuf::Closure *cb,google
 google::protobuf::Message *TwoWayStream::fillMessage(google::protobuf::Message *type,bool timeout){
   char bs[4];
   uint32_t msglen;
-  printf("Waitmsg\n");
-  if(idev->bytesAvailable()<0){
+  idev->waitForReadyRead(250);
+  if(idev->bytesAvailable()<1){
       msleep(250);
+      delete(type);
       return NULL;
   }
+  //printf("Waitmsg\n");
+
   uint32_t red=idev->read(bs,4);
-  printf("Red%d\n",red);
-  if(red<4)
+  printf("Red%d,%s\n",red,idev->errorString().toUtf8().data());
+  if(red<4){
+    delete(type);
     return NULL;
+  }
   //msglen=(bs[0]<<24)|(bs[1]<<16)|(bs[2]<<8)|(bs[3]<<24);
   msglen=(bs[0]<<24)|(bs[1]<<16)|(bs[2]<<8)|(bs[3]);
   printf("Gotmsg%d, %d\n",red,msglen);
@@ -135,6 +140,8 @@ void TwoWayStream::run() {
                 }
                 if(inmsg==NULL||inmsg->type()==protorpc::DISCONNECT){//disconnected by stream
                     connected=false;
+                    if(inmsg)
+                        delete inmsg;
                     printf("Disc\n");
                     break;
                 }
@@ -215,6 +222,7 @@ void TwoWayStream::run() {
                 }else{//empty buffer
                         //in.skip(in.available());
                 }
+                delete inmsg;
         }
 	  cleanup();
 }

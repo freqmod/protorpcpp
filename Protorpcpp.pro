@@ -14,7 +14,9 @@ SOURCES += twowaystream.cpp \
     Message.pb.cc \
     callentry.cpp \
     streamcallbackinfo.cpp \
-    twowayrpccontroller.cpp
+    twowayrpccontroller.cpp \
+    socketserver.cpp \
+    testserversideservice.cpp
 HEADERS += Protorpcpp_global.h \
     twowaystream.h \
     threadtool.h \
@@ -25,4 +27,6 @@ HEADERS += Protorpcpp_global.h \
     Message.pb.h \
     callentry.h \
     streamcallbackinfo.h \
-    twowayrpccontroller.h
+    twowayrpccontroller.h \
+    socketserver.h \
+    testserversideservice.h

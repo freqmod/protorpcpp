@@ -9,10 +9,11 @@
 #include <google/protobuf/descriptor.h>
 #include "twowaystream.h"
 namespace protorpc{
-class SocketServer : QThread
+class SocketServer : public QThread
 {
 public:
-    SocketServer(google::protobuf::Service* toServe);
+    SocketServer(google::protobuf::Service* toServe,QHostAddress addr,uint16_t port);
+    ~SocketServer();
     QTcpServer *getTcpServer();
     static void shutdownCallback(SocketServer *on,bool parameter);
     void start();
@@ -23,8 +24,13 @@ public:
     void shutdownCallback(SocketServer *on);
 
 protected:
-    QTcpServer tsr;
+    QTcpServer* tsr;
+    QMutex soclock;
+    QWaitCondition socwait;
+    QHostAddress addr;
+    uint16_t prt;
     bool running;
+    bool prepared;
     bool shutdownOnDisconnect;
     google::protobuf::Service* service;
     QSet<TwoWayStream*> streamServers;
