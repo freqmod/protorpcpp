@@ -35,7 +35,8 @@ void TwoWayStream::start(){
         }
 }
 
-void TwoWayStream::callMethod(const MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, Closure * done){
+//void TwoWayStream::callMethod(const MethodDescriptor * method, google::protobuf::RpcController * controller, const google::protobuf::Message * request, google::protobuf::Message * response, Closure * done){
+void TwoWayStream::CallMethod(const google::protobuf::MethodDescriptor* method, google::protobuf::RpcController* controller, const google::protobuf::Message* request, google::protobuf::Message* response, google::protobuf::Closure* done){
     if(spawnCallers){
             //Class<?> paramTypes[]={MethodDescriptor.class,RpcController.class,google::protobuf::Message.class,google::protobuf::Message.class,RpcCallback.class};
 /*            Object params[]={method,controller,request,responsePrototype,done};
@@ -180,7 +181,9 @@ void TwoWayStream::run() {
                                         //void (*resp)(StreamCallbackInfo*)=response;
                                         controller->NotifyOnCancel(rspcls);
                                         printf("cm\n");
+                                        streamlock.unlock();
                                         service->CallMethod(method, controller, request,rspmsg,rspcls);
+                                        streamlock.lock();
                                 }
                                 printf("Sq\n");
                         }
@@ -262,13 +265,17 @@ void TwoWayStream::shutdown(bool closeStreams){
   * Private: Called to signal that a response is recieved, may dissappear at any moment
   */
 void TwoWayStream::response(StreamCallbackInfo *info){//Integer id, Object param,RpcController ctrl) {
+    printf("TWRecresp\n");
     QMutexLocker mtxlck(&streamlock);
+    printf("Glk\n");
     if(service==NULL){
+        printf("Noservice\n");
         delete info;
         return;
     }
     uint32_t id=info->id;
     if (!info->ctr->Failed()) {// response
+        printf("Sresp\n");
         protorpc::Message rspbld = protorpc::Message();
         rspbld.set_type(protorpc::RESPONSE);
         rspbld.set_id(id);
@@ -276,18 +283,13 @@ void TwoWayStream::response(StreamCallbackInfo *info){//Integer id, Object param
         writeMessage(&rspbld);
 
     } else  {// canceled
-        if(info->ctr->Failed()){
-            protorpc::Message rspbld = protorpc::Message();
-            rspbld.set_type(protorpc::RESPONSE_CANCEL);
-            rspbld.set_id(info->id);
-            writeMessage(&rspbld);
-        }else{
-            protorpc::Message rspbld = protorpc::Message();
-            rspbld.set_type(protorpc::RESPONSE_CANCEL);
-            rspbld.set_id(id);
-            rspbld.set_buffer(info->ctr->ErrorText());
-            writeMessage(&rspbld);
-        }
+        printf("cncl\n");
+
+        protorpc::Message rspbld = protorpc::Message();
+        rspbld.set_type(protorpc::RESPONSE_CANCEL);
+        rspbld.set_id(id);
+        rspbld.set_buffer(info->ctr->ErrorText());
+        writeMessage(&rspbld);
     }
     currentCalls.remove(info->id);
     delete info->msg;

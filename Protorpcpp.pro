@@ -16,7 +16,10 @@ SOURCES += twowaystream.cpp \
     streamcallbackinfo.cpp \
     twowayrpccontroller.cpp \
     socketserver.cpp \
-    testserversideservice.cpp
+    testserversideservice.cpp \
+    socketchannel.cpp \
+    responsewaiter.cpp \
+    responsewaiterprivate.cpp
 HEADERS += Protorpcpp_global.h \
     twowaystream.h \
     threadtool.h \
@@ -29,4 +32,7 @@ HEADERS += Protorpcpp_global.h \
     streamcallbackinfo.h \
     twowayrpccontroller.h \
     socketserver.h \
-    testserversideservice.h
+    testserversideservice.h \
+    socketchannel.h \
+    responsewaiter.h \
+    responsewaiterprivate.h
