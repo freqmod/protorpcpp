@@ -6,9 +6,7 @@ QT -= gui
 TARGET = protorpcpp
 TEMPLATE = lib
 DEFINES += PROTORPCPP_LIBRARY
-SOURCES += protorpcpp.cpp \
-    twowaystream.cpp \
-    threadtool.cpp \
+SOURCES += twowaystream.cpp \
     callentry.cpp \
     streamcallbackinfo.cpp \
     simplerpccontroller.cpp \
@@ -18,10 +16,8 @@ SOURCES += protorpcpp.cpp \
     socketserver.cpp \
     responsewaiterprivate.cpp \
     responsewaiter.cpp
-HEADERS += protorpcpp.h \
-    protorpcpp_global.h \
+HEADERS += protorpcpp_global.h \
     twowaystream.h \
-    threadtool.h \
     callentry.h \
     streamcallbackinfo.h \
     simplerpccontroller.h \

@@ -1,3 +1,17 @@
+
+/* Copyright (C) 2009 Frederik M.J.V
+
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+
+ * LGPL is available on the internet at
+ * http://www.gnu.org/licenses/lgpl-2.1.html and from Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
+*/
+
 #include "responsewaiterprivate.h"
 #include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
@@ -142,7 +156,6 @@ void ResponseWaiter::channelBroken(google::protobuf::RpcChannel *b) {
         QMutexLocker wlcker(wl);
         cbr = NULL;
         responded = true;
-        printf("RW:Broken\n");
         wc.wakeAll();
 }
 
@@ -150,21 +163,18 @@ void ResponseWaiter::callback(google::protobuf::Message *param) {
         QMutexLocker wlcker(wl);
         cbr=param;
         responded = true;
-        printf("RW:Callback\n");
         wc.wakeAll();
 }
 void ResponseWaiter::methodCanceled(google::protobuf::RpcController *ctrl){
         QMutexLocker wlcker(wl);
         cbr = NULL;
         responded = true;
-        printf("RW:Canceled\n");
         wc.wakeAll();
 }
 void ResponseWaiter::methodFailed(google::protobuf::RpcController *ctrl,std::string reason){
         QMutexLocker wlcker(wl);
         cbr = NULL;
         responded = true;
-        printf("RW:Failed\n");
         wc.wakeAll();
 }
 

@@ -1,3 +1,16 @@
+/* Copyright (C) 2009 Frederik M.J.V
+
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+
+ * LGPL is available on the internet at
+ * http://www.gnu.org/licenses/lgpl-2.1.html and from Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
+*/
+
 #include "twowaystream.h"
 #include "Message.pb.h"
 #include "prototools.h"
@@ -104,7 +117,7 @@ void TwoWayStream::writeMessage(google::protobuf::Message* m){
   if(odev->write(serializeToByteArray(m))<0)
       throw -1;
   odev->waitForBytesWritten(10);
-  printf("Wrote message\n");
+ // printf("Wrote\n");
 }
 void TwoWayStream::requestServiceDescriptor(google::protobuf::Closure *cb,google::protobuf::RpcController *ctrl){
     QMutexLocker mtxlck(streamlock);
@@ -115,23 +128,24 @@ void TwoWayStream::requestServiceDescriptor(google::protobuf::Closure *cb,google
 google::protobuf::Message *TwoWayStream::fillMessage(google::protobuf::Message *type){
   char bs[4];
   uint32_t msglen;
+  QMutexLocker dl(&devlock);
   streamlock->lock();
   if(!connected||!idev->isOpen()){
     delete(type);
     streamlock->unlock();
     return NULL;
   }
-  idev->waitForReadyRead(250);
   streamlock->unlock();
+  idev->waitForReadyRead(250);
+
   if(idev->bytesAvailable()<1){
-      msleep(250);
+      msleep(10);
       delete(type);
       return NULL;
   }
   //printf("Waitmsg\n");
-
   uint32_t red=idev->read(bs,4);
-  printf("Red%d,%s\n",red,idev->errorString().toUtf8().data());
+  //printf("Red%d,%s\n",red,idev->errorString().toUtf8().data());
   if(red<4){
     delete(type);
     return NULL;
@@ -141,14 +155,12 @@ google::protobuf::Message *TwoWayStream::fillMessage(google::protobuf::Message *
   if(bs[0]!=0){
       printf("Most likely got out of sync");
   }
-  printf("Gotmsg%d, %d\n",red,msglen);
+  //printf("Gotmsg%d, %d\n",red,msglen);
   if(msglen<=0){
     delete(type);
     return NULL;
   }
   uint32_t vld=0;
-  printf("STRD\n");
-  idev->waitForReadyRead(250);
   QByteArray msgbuf =idev->read(msglen);
   if(msgbuf.length()< msglen){
       printf("Extread%d<%d\n",msgbuf.length(),msglen);
@@ -159,9 +171,9 @@ google::protobuf::Message *TwoWayStream::fillMessage(google::protobuf::Message *
             msgbuf.append(recv);
       }
   }
-  printf("SRM\n");
+
   //QByteArray msgbuf=idev->read(msglen);
-  printf("Red%d\n",msgbuf.length());
+  //printf("Red%d\n",msgbuf.length());
   parseFromByteArray(type,msgbuf);
   return type;
 }
@@ -179,7 +191,6 @@ void TwoWayStream::run() {
                 inmsg=(protorpc::Message*)fillMessage(protorpc::Message().New());
                 if(inmsg==NULL){
                     if(idev->isOpen()){
-                        printf("NISO\n");
                         continue;
                     }
                 }
@@ -187,16 +198,12 @@ void TwoWayStream::run() {
                     connected=false;
                     if(inmsg)
                         delete inmsg;
-                    printf("Disc\n");
                     break;
                 }
-                printf("Recmsg:%d\n",inmsg->type());
                 if (inmsg->type()==protorpc::REQUEST) {
-                        printf("Grq\n");
                         method=NULL;
                         if(service==NULL){//send not implemented
                                 streamlock->lock();
-                                printf("nullsrv\n");
                                 protorpc::Message *respo=protorpc::Message().New();
                                 respo->set_type(protorpc::RESPONSE_NOT_IMPLEMENTED);
                                 respo->set_id(inmsg->id());
@@ -204,10 +211,8 @@ void TwoWayStream::run() {
                                 delete respo;
                                 streamlock->unlock();
                         } else{
-                                printf("Req>%s<\n",inmsg->name().c_str());
                                 streamlock->lock();
                                 if((method=service->GetDescriptor()->FindMethodByName(inmsg->name()))==NULL){
-                                        printf("mnf>%s<\n",inmsg->name().c_str());
                                         protorpc::Message *resp=protorpc::Message().New();
                                         resp->set_type(protorpc::RESPONSE_NOT_IMPLEMENTED);//this fails if the program ends executing when the thread is still running
                                         resp->set_id(inmsg->id());
@@ -215,7 +220,6 @@ void TwoWayStream::run() {
                                         delete resp;
                                 }
                                 if(method!=NULL){
-                                        printf("mfnd\n");
                                         request = service->GetRequestPrototype(method).New();
                                         request->ParseFromString(inmsg->buffer());
                                         controller = new TwoWayRpcController(this);
@@ -225,12 +229,10 @@ void TwoWayStream::run() {
                                         //NewCallback(this, &Handler::FooDone, response);
                                         //void (*resp)(StreamCallbackInfo*)=response;
                                         controller->NotifyOnCancel(rspcls);
-                                        printf("cm\n");
                                         streamlock->unlock();
                                         service->CallMethod(method, controller, request,rspmsg,rspcls);
                                         streamlock->lock();
                                 }
-                                printf("Sq\n");
                         }
                 }else if (inmsg->type()==protorpc::DESCRIPTOR_REQUEST) {
                     streamlock->lock();
@@ -244,7 +246,6 @@ void TwoWayStream::run() {
                     streamlock->lock();
                     if (currentCalls.contains(inmsg->id())) {
                             msg = (currentCalls.value(inmsg->id()));
-                            printf("Bla:>%s<\n",inmsg->buffer().c_str());
                             msg.resp->ParseFromString(inmsg->buffer());//A sigsegv here most probably means that the response is deleted and has left a dangling pointer.
                             currentCalls.remove(inmsg->id());
                             streamlock->unlock();
@@ -318,13 +319,14 @@ void TwoWayStream::shutdown(bool closeStreams){
         }
         streamlock->unlock();
 #endif
-
+        streamlock->unlock();
+        devlock.lock();
         if(closeStreams){
             idev->close();
             if(idev!=odev)
                 odev->close();
         }
-        streamlock->unlock();
+        devlock.unlock();
         //wait until thread is stopped
         emit channelBroken(this);//may create problems whith queue signals etc. if shutdownCallback deletes this object
         if(shutdownCallback!=NULL)
@@ -336,17 +338,13 @@ void TwoWayStream::shutdown(bool closeStreams){
   * Private: Called to signal that a response is recieved, may dissappear at any moment
   */
 void TwoWayStream::response(StreamCallbackInfo *info){//Integer id, Object param,RpcController ctrl) {
-    printf("TWRecresp\n");
     QMutexLocker mtxlck(streamlock);
-    printf("Glk\n");
     if(service==NULL){
-        printf("Noservice\n");
         delete info;
         return;
     }
     uint32_t id=info->id;
     if (!info->ctr->Failed()) {// response
-        printf("Sresp\n");
         protorpc::Message rspbld = protorpc::Message();
         rspbld.set_type(protorpc::RESPONSE);
         rspbld.set_id(id);
@@ -358,8 +356,6 @@ void TwoWayStream::response(StreamCallbackInfo *info){//Integer id, Object param
         }
 
     } else  {// canceled
-        printf("cncl\n");
-
         protorpc::Message rspbld = protorpc::Message();
         rspbld.set_type(protorpc::RESPONSE_CANCEL);
         rspbld.set_id(id);

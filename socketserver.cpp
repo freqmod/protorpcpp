@@ -6,11 +6,13 @@ SocketServer::SocketServer(google::protobuf::Service* toServe,QHostAddress addr,
     this->addr=addr;
     this->prt=port;
     running=false;
+    soclock=new QMutex(QMutex::Recursive);
 //    prepared=false;
 }
 SocketServer::~SocketServer(){
     shutdown();
     delete tsr;
+    delete soclock;
 }
 #if 0
 QTcpServer *SocketServer::getTcpServer(){
@@ -48,10 +50,9 @@ void SocketServer::start(){
  * @param closeStreams - should the socket close the streams in this socket, leave to false if in doubt
  */
 void SocketServer::shutdown(){
-    printf("Shutdown socket server\n");
     if(running){
         running=false;
-        soclock.lock();
+        soclock->lock();
         //FIXME:interrupt thread
         TwoWayStream** s;
         foreach(s,streamServers){
@@ -61,7 +62,7 @@ void SocketServer::shutdown(){
         }
         streamServers.clear();
         tsr->close();
-        soclock.unlock();
+        soclock->unlock();
     }
 }
 /**
@@ -79,14 +80,14 @@ void SocketServer::setShutDownOnDisconnect(bool shutDownOnDisconnect) {
 void SocketServer::run(){
         QTcpSocket *client;
         bool gotConnection=false;
-        soclock.lock();
+        soclock->lock();
         tsr=new QTcpServer(NULL);
         tsr->listen(addr,prt);
         while(running){
-                soclock.unlock();
+                soclock->unlock();
                 //client=ssc.accept();
                 gotConnection=tsr->waitForNewConnection(250);
-                soclock.lock();
+                soclock->lock();
                 if(gotConnection){
                     client=tsr->nextPendingConnection();
                     TwoWayStream **ssp=(TwoWayStream **) malloc(sizeof(TwoWayStream*));
@@ -104,14 +105,13 @@ void SocketServer::run(){
                     }
                 }
         }
-        socwait.wakeAll();
-        soclock.unlock();
+       // socwait.wakeAll();
+        soclock->unlock();
         running=false;
 }
 
 void SocketServer::stopServer(TwoWayStream** tws){
         //(*tws)->shutdown(true);
-        printf("Stopped server\n");
         streamServers.remove(tws);
         delete *tws;
         free(tws);
