@@ -15,13 +15,14 @@ public:
     SocketServer(google::protobuf::Service* toServe,QHostAddress addr,uint16_t port);
     ~SocketServer();
     QTcpServer *getTcpServer();
-    static void shutdownCallback(SocketServer *on,bool parameter);
+    //static void shutdownCallback(SocketServer *on,TwoWayStream **tws);
+
     void start();
-    void shutdown(bool closeStreams);
+    void shutdown();
     bool doShutDownOnDisconnect();
     void setShutDownOnDisconnect(bool shutDownOnDisconnect) ;
     void run();
-    void shutdownCallback(SocketServer *on);
+    //void shutdownCallback(SocketServer *on);
 
 protected:
     QTcpServer* tsr;
@@ -33,7 +34,8 @@ protected:
     bool prepared;
     bool shutdownOnDisconnect;
     google::protobuf::Service* service;
-    QSet<TwoWayStream*> streamServers;
+    QSet<TwoWayStream**> streamServers;
+    void stopServer(TwoWayStream** tws);
 };
 };
 #endif // SOCKETSERVER_H

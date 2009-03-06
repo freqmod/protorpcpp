@@ -9,7 +9,7 @@ SocketServer::SocketServer(google::protobuf::Service* toServe,QHostAddress addr,
 //    prepared=false;
 }
 SocketServer::~SocketServer(){
-    shutdown(false);
+    shutdown();
     delete tsr;
 }
 #if 0
@@ -47,17 +47,19 @@ void SocketServer::start(){
  * Shut down this server socket
  * @param closeStreams - should the socket close the streams in this socket, leave to false if in doubt
  */
-void SocketServer::shutdown(bool closeStreams){
+void SocketServer::shutdown(){
+    printf("Shutdown socket server\n");
     if(running){
         running=false;
         soclock.lock();
-        socwait.wait(&soclock);
-        soclock.unlock();
         //FIXME:interrupt thread
-        TwoWayStream* s;
+        TwoWayStream** s;
         foreach(s,streamServers){
-           s->shutdown(closeStreams);
+           (*s)->shutdown(true);
+           delete*s;
+           free(s);
         }
+        streamServers.clear();
         tsr->close();
         soclock.unlock();
     }
@@ -84,21 +86,45 @@ void SocketServer::run(){
                 soclock.unlock();
                 //client=ssc.accept();
                 gotConnection=tsr->waitForNewConnection(250);
-                if(gotConnection){
-
-                    client=tsr->nextPendingConnection();
-                    TwoWayStream *ss=new TwoWayStream(client,service,true,google::protobuf::NewCallback(shutdownCallback,this,false));
-                    streamServers.insert(ss);
-                }
                 soclock.lock();
+                if(gotConnection){
+                    client=tsr->nextPendingConnection();
+                    TwoWayStream **ssp=(TwoWayStream **) malloc(sizeof(TwoWayStream*));
+                    TwoWayStream *ss=new TwoWayStream(client,service,true);//,google::protobuf::NewCallback(shutdownCallback,this,ssp));//don't use callback
+                    *ssp=ss;
+                    streamServers.insert(ssp);
+                }
+                foreach(TwoWayStream** s, streamServers){
+                    if((*s)->isFinished()){
+                        if(shutdownOnDisconnect){
+                            shutdown();
+                        }else{
+                            stopServer(s);
+                        }
+                    }
+                }
         }
         socwait.wakeAll();
         soclock.unlock();
         running=false;
 }
-void SocketServer::shutdownCallback(SocketServer *on,bool parameter) {
-        if(on->shutdownOnDisconnect)
-                on->shutdown(parameter);
+
+void SocketServer::stopServer(TwoWayStream** tws){
+        //(*tws)->shutdown(true);
+        printf("Stopped server\n");
+        streamServers.remove(tws);
+        delete *tws;
+        free(tws);
 }
+#if 0
+void SocketServer::shutdownCallback(SocketServer *on,TwoWayStream **tws) {//delete the server when it has shut down
+    printf("Shutdown callback in socketserver called\n");
+    if(on->shutdownOnDisconnect)
+            on->shutdown();
+    else{//shutdown that server
+        on->stopServer(tws);
+    }
+}
+#endif
 };
 

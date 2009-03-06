@@ -23,8 +23,8 @@ void SimpleRpcController::Reset(){
     hasFailed=false;
     canceled=false;
     cancelListeners.clear();
-    disconnect(this,SIGNAL(methodFailed(SimpleRpcController*,std::string)),0,0);//disconnect all info listeners
-    disconnect(this,SIGNAL(methodCanceled(SimpleRpcController*)),0,0);//disconnect all info listeners
+    disconnect(this,SIGNAL(methodFailed(google::protobuf::RpcController*,std::string)),0,0);//disconnect all info listeners
+    disconnect(this,SIGNAL(methodCanceled(google::protobuf::RpcController*)),0,0);//disconnect all info listeners
 }
 //server side
 void SimpleRpcController::SetFailed(const std::string &reason){

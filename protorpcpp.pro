@@ -15,7 +15,9 @@ SOURCES += protorpcpp.cpp \
     twowayrpccontroller.cpp \
     prototools.cpp \
     testserversideservice.cpp \
-    socketserver.cpp
+    socketserver.cpp \
+    responsewaiterprivate.cpp \
+    responsewaiter.cpp
 HEADERS += protorpcpp.h \
     protorpcpp_global.h \
     twowaystream.h \
@@ -26,4 +28,6 @@ HEADERS += protorpcpp.h \
     twowayrpccontroller.h \
     prototools.h \
     testserversideservice.h \
-    socketserver.h
+    socketserver.h \
+    responsewaiterprivate.h \
+    responsewaiter.h

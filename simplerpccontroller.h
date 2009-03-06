@@ -25,8 +25,8 @@ public:
     void startCancel();
     //extensions
 signals:
-    void methodFailed(SimpleRpcController *ctrl,std::string reason);
-    void methodCanceled(SimpleRpcController *ctrl);
+    void methodFailed(google::protobuf::RpcController *ctrl,std::string reason);
+    void methodCanceled(google::protobuf::RpcController *ctrl);
 protected:
     std::string reason;
     bool hasFailed;

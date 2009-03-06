@@ -1,6 +1,7 @@
 #include "twowaystream.h"
 #include "simplerpccontroller.h"
 #include "testserversideservice.h"
+#include "responsewaiter.h"
 #include "socketserver.h"
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -40,11 +41,30 @@ int main(int argc,const char** argv){
         protorpc::TwoWayStream *tws=new protorpc::TwoWayStream(soc,NULL,true,NULL);
         protorpc::SimpleRpcController *ctrl=new protorpc::SimpleRpcController();
         prttst::Exprintserver_Stub service(tws);
-        prttst::Void req();
-        //Res
-        service.resp(ctrl,req,waiter.Callback());
+        prttst::Void *req=new prttst::Void();
+        prttst::Testresp *resp=new prttst::Testresp();
+        protorpc::ResponseWaiter *waiter= new protorpc::ResponseWaiter((QObject*)tws,(QObject*)ctrl,resp);
+        service.resp(ctrl,req,resp,waiter->getClosure());
+        delete req;
+        printf("PRW\n");
+        if(waiter->wait(500)==NULL){
+
+            if(ctrl->Failed()){
+                printf("Call failed:%s\n\n",ctrl->ErrorText().c_str());
+            }else{
+                tws->cancelMethodCall(resp);
+            }
+            printf("Call timed out\n");
+        }else{
+            printf("PSTW>%s<\n",resp->responsecode().c_str());
+        }
+        tws->shutdown(true);
+        tws->wait();
+        delete resp;
+        delete tws;
     }else{
         protorpc::SocketServer *socsrv= new protorpc::SocketServer(new TestServerSideService(),QHostAddress(QString("0.0.0.0")),1238);
+        socsrv->setShutDownOnDisconnect(true);
         socsrv->start();
         socsrv->wait();
     }

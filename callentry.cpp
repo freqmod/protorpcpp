@@ -1,7 +1,11 @@
 #include "callentry.h"
 namespace protorpc{
 
-CallEntry::CallEntry(){}
+CallEntry::CallEntry(){
+    this->ctrl=NULL;
+    this->callback=NULL;
+    this->resp=NULL;
+}
 CallEntry::CallEntry(google::protobuf::RpcController *ctrl,google::protobuf::Closure *cb,google::protobuf::Message *resp){
     this->ctrl=ctrl;
     this->callback=cb;
