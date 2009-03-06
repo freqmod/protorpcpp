@@ -148,7 +148,7 @@ void ResponseWaiter::listen(QObject *chan, QObject *ctrl,google::protobuf::Messa
 }
 
 google::protobuf::Closure *ResponseWaiter::getClosure(){
-    return child->closure;
+    return child->getClosure();
 }
 
 

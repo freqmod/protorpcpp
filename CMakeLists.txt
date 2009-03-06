@@ -22,7 +22,7 @@ ELSE (QT4_FOUND)
 ENDIF (QT4_FOUND)
 
 # qclientold
-set(qtproject_SRCS  twowaystream.cpp threadtool.cpp simplerpccontroller.cpp prototools.cpp protorpcpp.cpp Message.pb.cc callentry.cpp streamcallbackinfo.cpp twowayrpccontroller.cpp twowaystream.h simplerpccontroller.h  test/test.pb.cc socketserver.cpp responsewaiter.cpp responsewaiter.h responsewaiterprivate.cpp responsewaiterprivate.h ) 
+set(qtproject_SRCS  twowaystream.cpp simplerpccontroller.cpp prototools.cpp Message.pb.cc callentry.cpp streamcallbackinfo.cpp twowayrpccontroller.cpp twowaystream.h simplerpccontroller.h  test/test.pb.cc socketserver.cpp responsewaiter.cpp responsewaiter.h responsewaiterprivate.cpp responsewaiterprivate.h ) 
 set(qtproject_HDRS)
 QT4_AUTOMOC(  twowaystream.h simplerpccontroller.h responsewaiterprivate.h responsewaiter.h )
 #SET(qtproject_UIS slimemain.ui slimeplayermain.ui)
